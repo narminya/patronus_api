@@ -27,4 +27,12 @@ public class UserServiceImpl implements UserService {
         return userRepository.findById(userId)
                 .orElseThrow(UserNotFoundException::new);
     }
+    @Override
+    public boolean hasUserWithUsername(String username) {
+        return userRepository.existsByUsername(username);
+    }
+    @Override
+    public boolean hasUserWithEmail(String email) {
+        return userRepository.existsByEmail(email);
+    }
 }

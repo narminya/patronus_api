@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -35,12 +36,25 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     }
 
     @Override
+    public List<RefreshToken> findAllValid(UUID userId) {
+       return tokenRepository.findAllValidTokenByUser(userId);
+    }
+
+    @Override
     public RefreshToken getByUser(UUID userId) {
         return tokenRepository.findByUserId(userId)
                 .orElseThrow(TokenNotFoundException::new);
     }
 
 
+    @Override
+    public RefreshToken save(RefreshToken token) {
+       return tokenRepository.save(token);
+    }
+    @Override
+    public List<RefreshToken> saveAll(List<RefreshToken> token) {
+        return tokenRepository.saveAll(token);
+    }
     @Override
     public RefreshToken findByToken(String token) {
         return tokenRepository.findByToken(token)
@@ -53,5 +67,11 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     public int deleteByUserId(UUID userId) {
         User user = userService.getUserById(userId);
         return tokenRepository.deleteByUser(user);
+    }
+
+    @Override
+    public int deleteAllByUserId(UUID userId) {
+        User user = userService.getUserById(userId);
+        return tokenRepository.revokeAllByUser(user);
     }
 }

@@ -7,16 +7,16 @@ import com.example.patronus.models.jpa.Role;
 import com.example.patronus.models.jpa.User;
 import com.example.patronus.payload.request.LoginRequest;
 import com.example.patronus.payload.request.SignUpRequest;
-import com.example.patronus.payload.request.TokenRefreshRequest;
 import com.example.patronus.payload.response.AuthResponse;
 import com.example.patronus.payload.response.TokenRefreshResponse;
 import com.example.patronus.repository.RoleRepository;
 import com.example.patronus.repository.TokenRepository;
-import com.example.patronus.repository.UserRepository;
 import com.example.patronus.security.TokenProvider;
 import com.example.patronus.service.AuthService;
 import com.example.patronus.service.RefreshTokenService;
+import com.example.patronus.service.UserService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -27,28 +27,26 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
-    @Value("${app.jwtExpirationMs}")
-    private Long jwtExpirationMs;
+
     @Value("${app.jwtRefreshExpirationMs}")
     private Long jwtRefreshExpirationMs;
-
-
     private final TokenProvider tokenProvider;
     private final PasswordEncoder passwordEncoder;
-    private final UserRepository userRepository;
+    private final UserService userService;
     private final RoleRepository roleRepository;
-    private final TokenRepository tokenRepository;
     private final AuthenticationManager authenticationManager;
+    private final RefreshTokenService tokenService;
 
     @Override
     public AuthResponse register(SignUpRequest request) {
 
-        if (hasUserWithUsername(request.getUsername())) {
+        if (userService.hasUserWithUsername(request.getUsername())) {
             throw new DuplicatedUserInfoException(String.format("Username %s already been used", request.getUsername()));
         }
-        if (hasUserWithEmail(request.getEmail())) {
+        if (userService.hasUserWithEmail(request.getEmail())) {
             throw new DuplicatedUserInfoException(String.format("Email %s already been used", request.getEmail()));
         }
         Role optionalRole = roleRepository
@@ -90,27 +88,38 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public String logout(String token) {
-        return null;
+    public void logout(String token) {
+        String refreshToken = extractTokenFromHeader(token);
+        RefreshToken existing = tokenService.findByToken(refreshToken);
+        User user = userService.getUser(existing.getUser().getUsername());
+        tokenService.deleteAllByUserId(user.getId());
     }
 
     @Override
-    public TokenRefreshResponse refreshToken(TokenRefreshRequest request) {
-        final String refreshToken;
-        final String username;
+    public TokenRefreshResponse refreshToken(String token) {
+        String refreshToken = extractTokenFromHeader(token);
+        RefreshToken existing = tokenService.findByToken(refreshToken);
+        if (!tokenService.verifyExpiration(existing)) {
 
+            var newToken = generateToken(existing.getUser().getUsername(),
+                    existing.getUser().getPassword());
+            return TokenRefreshResponse.builder()
+                    .accessToken(newToken)
+                    .refreshToken(existing.getToken())
+                    .build();
+        }
         return null;
     }
 
     public void revokeUsersTokens(User user) {
-        var validUserTokens = tokenRepository.findAllValidTokenByUser(user.getId());
+        var validUserTokens = tokenService.findAllValid(user.getId());
         if (validUserTokens.isEmpty())
             return;
         validUserTokens.forEach(token -> {
             token.setExpired(true);
             token.setRevoked(true);
         });
-        tokenRepository.saveAll(validUserTokens);
+        tokenService.saveAll(validUserTokens);
     }
 
     private void saveUserToken(User user, String jwtToken) {
@@ -121,16 +130,10 @@ public class AuthServiceImpl implements AuthService {
                 .revoked(false)
                 .expiryDate(Instant.now().plusSeconds(jwtRefreshExpirationMs))
                 .build();
-        tokenRepository.save(token);
+        tokenService.save(token);
     }
 
-    public boolean hasUserWithUsername(String username) {
-        return userRepository.existsByUsername(username);
-    }
 
-    public boolean hasUserWithEmail(String email) {
-        return userRepository.existsByEmail(email);
-    }
 
     private String generateToken(
             String username, String password
@@ -150,4 +153,13 @@ public class AuthServiceImpl implements AuthService {
                 .authenticate(new UsernamePasswordAuthenticationToken(username, password));
         return tokenProvider.generate(authentication);
     }
+
+    private String extractTokenFromHeader(String authorizationHeader) {
+
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            return authorizationHeader.substring(7);
+        }
+        return null;
+    }
+
 }

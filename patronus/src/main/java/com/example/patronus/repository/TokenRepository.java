@@ -19,5 +19,7 @@ public interface TokenRepository  extends JpaRepository<RefreshToken, UUID> {
     List<RefreshToken> findAllValidTokenByUser(UUID id);
     @Modifying
     int deleteByUser(User user);
-
+    @Modifying
+    @Query(value = "UPDATE refreshTokens SET revoked = :revokedValue WHERE user_id = :userId", nativeQuery = true)
+    int revokeAllByUser(User user);
 }

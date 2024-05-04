@@ -12,4 +12,5 @@ public interface AuthService {
     AuthResponse authenticate(LoginRequest request);
     void logout(String token);
     TokenRefreshResponse refreshToken(String token);
+    String confirmToken(String emailToken);
 }

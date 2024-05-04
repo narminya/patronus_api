@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Entity
 @Data
@@ -19,8 +20,8 @@ import java.time.LocalDate;
 public class RefreshToken {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private UUID id;
 
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id")

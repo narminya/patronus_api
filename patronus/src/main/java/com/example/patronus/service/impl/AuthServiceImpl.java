@@ -2,6 +2,7 @@ package com.example.patronus.service.impl;
 
 import com.example.patronus.enums.ERole;
 import com.example.patronus.exception.user.DuplicatedUserInfoException;
+import com.example.patronus.models.jpa.EmailConfirmationToken;
 import com.example.patronus.models.jpa.RefreshToken;
 import com.example.patronus.models.jpa.Role;
 import com.example.patronus.models.jpa.User;
@@ -11,9 +12,8 @@ import com.example.patronus.payload.response.AuthResponse;
 import com.example.patronus.payload.response.TokenRefreshResponse;
 import com.example.patronus.repository.RoleRepository;
 import com.example.patronus.security.TokenProvider;
-import com.example.patronus.service.AuthService;
-import com.example.patronus.service.RefreshTokenService;
-import com.example.patronus.service.UserService;
+import com.example.patronus.service.*;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,7 +24,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.UUID;
+
+import static com.example.patronus.utils.EmailBuilder.buildEmail;
 
 @Service
 @Slf4j
@@ -40,7 +44,8 @@ public class AuthServiceImpl implements AuthService {
     private final RoleRepository roleRepository;
     private final AuthenticationManager authenticationManager;
     private final RefreshTokenService tokenService;
-
+    private final EmailConfirmationService emailConfirmationService;
+    private final EmailService emailService;
     @Override
     public AuthResponse register(SignUpRequest request) {
 
@@ -61,7 +66,10 @@ public class AuthServiceImpl implements AuthService {
                 .roles(new HashSet<>())
                 .build();
         user.getRoles().add(optionalRole);
+
         userService.save(user);
+        confirmEmailSigningUp(request, user);
+
         var jwtToken = generateToken(request.getUsername(), request.getPassword());
         var refreshToken = generateRefreshToken(request.getUsername(), request.getPassword());
         saveUserToken(user, refreshToken);
@@ -112,6 +120,45 @@ public class AuthServiceImpl implements AuthService {
                     .build();
         }
         return null;
+    }
+
+    @Transactional
+    public String confirmToken(String emailToken) {
+        EmailConfirmationToken emailConfirmationToken = emailConfirmationService
+                .getToken(emailToken);
+
+        if (emailConfirmationToken.getConfirmedAt() != null) {
+            throw new IllegalStateException("email already confirmed");
+        }
+        LocalDateTime expiredAt = emailConfirmationToken.getExpiresAt();
+
+        if (expiredAt.isBefore(LocalDateTime.now())) {
+            throw new IllegalStateException("token expired");
+        }
+
+        emailConfirmationService.setConfirmedAt(emailToken);
+        userService.confirmUser(
+                emailConfirmationToken.getUser().getEmail());
+        return "Your email: " + emailConfirmationToken.getUser().getEmail() + " is successfully confirmed. Thank you!";
+    }
+
+    private void confirmEmailSigningUp(SignUpRequest signUpRequest, User user){
+
+        String emailToken = UUID.randomUUID().toString();
+        EmailConfirmationToken emailConfirmationToken = EmailConfirmationToken.builder()
+                .token(emailToken).createdAt( LocalDateTime.now()).expiresAt(LocalDateTime.now().plusMinutes(15))
+                .user(user).build();
+
+        emailConfirmationService.saveEmailConfirmationToken(emailConfirmationToken);
+
+        sendConfirmationEmail(signUpRequest.getEmail(), emailToken);
+
+    }
+
+    private void sendConfirmationEmail(String email, String token) {
+        String confirmationLink = "http://localhost:8080/auth/confirm?emailToken=" + token;
+        String emailBody = buildEmail(email, confirmationLink);
+        emailService.send(email, emailBody);
     }
 
     private void revokeUsersTokens(User user) {

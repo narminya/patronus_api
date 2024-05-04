@@ -40,4 +40,10 @@ public class AuthController {
     ) {
         return ResponseEntity.ok(authService.refreshToken(token));
     }
+
+
+    @GetMapping(path = "/confirm")
+    public String confirm(@RequestParam("emailToken") String emailToken) {
+        return  authService.confirmToken(emailToken);
+    }
 }

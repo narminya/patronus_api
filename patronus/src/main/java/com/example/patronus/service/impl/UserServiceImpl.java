@@ -41,4 +41,8 @@ public class UserServiceImpl implements UserService {
     public boolean hasUserWithEmail(String email) {
         return userRepository.existsByEmail(email);
     }
+
+    public int confirmUser(String email) {
+        return userRepository.confirmUserByEmail(email);
+    }
 }

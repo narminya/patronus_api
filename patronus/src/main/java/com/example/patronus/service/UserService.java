@@ -10,4 +10,5 @@ public interface UserService {
     User getUserById(UUID userId);
     boolean hasUserWithUsername(String username);
     boolean hasUserWithEmail(String email);
+    int confirmUser(String email);
 }

@@ -1,4 +1,4 @@
-package com.example.patronus.exception;
+package com.example.patronus.exception.user;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;

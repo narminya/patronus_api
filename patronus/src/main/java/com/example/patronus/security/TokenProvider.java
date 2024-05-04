@@ -29,6 +29,8 @@ public class TokenProvider {
     private String jwtSecret;
     @Value("${app.jwtExpirationMs}")
     private Long jwtExpirationMs;
+    @Value("${app.jwtRefreshExpirationMs}")
+    private Long jwtRefreshExpirationMs;
     public String generate(Authentication authentication) {
         CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
 
@@ -54,6 +56,18 @@ public class TokenProvider {
                 .claim("name", user.getName())
                 .claim("preferred_username", user.getUsername())
                 .claim("email", user.getEmail())
+                .compact();
+    }
+
+    public String generateRefreshToken(Authentication authentication) {
+        CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
+        byte[] signingKey = jwtSecret.getBytes();
+
+        return Jwts.builder()
+                .signWith(Keys.hmacShaKeyFor(signingKey), Jwts.SIG.HS512)
+                .expiration(Date.from(ZonedDateTime.now().plusMinutes(jwtRefreshExpirationMs).toInstant()))
+                .issuedAt(Date.from(ZonedDateTime.now().toInstant()))
+                .subject(user.getUsername())
                 .compact();
     }
 

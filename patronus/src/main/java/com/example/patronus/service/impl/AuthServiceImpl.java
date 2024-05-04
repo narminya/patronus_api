@@ -1,7 +1,7 @@
 package com.example.patronus.service.impl;
 
 import com.example.patronus.enums.ERole;
-import com.example.patronus.exception.DuplicatedUserInfoException;
+import com.example.patronus.exception.user.DuplicatedUserInfoException;
 import com.example.patronus.models.jpa.RefreshToken;
 import com.example.patronus.models.jpa.Role;
 import com.example.patronus.models.jpa.User;
@@ -10,7 +10,6 @@ import com.example.patronus.payload.request.SignUpRequest;
 import com.example.patronus.payload.response.AuthResponse;
 import com.example.patronus.payload.response.TokenRefreshResponse;
 import com.example.patronus.repository.RoleRepository;
-import com.example.patronus.repository.TokenRepository;
 import com.example.patronus.security.TokenProvider;
 import com.example.patronus.service.AuthService;
 import com.example.patronus.service.RefreshTokenService;
@@ -25,6 +24,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.HashSet;
 
 @Service
 @Slf4j
@@ -33,6 +33,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Value("${app.jwtRefreshExpirationMs}")
     private Long jwtRefreshExpirationMs;
+
     private final TokenProvider tokenProvider;
     private final PasswordEncoder passwordEncoder;
     private final UserService userService;
@@ -57,9 +58,10 @@ public class AuthServiceImpl implements AuthService {
                 .bio(request.getFullName())
                 .username(request.getUsername())
                 .password(passwordEncoder.encode(request.getPassword()))
+                .roles(new HashSet<>())
                 .build();
         user.getRoles().add(optionalRole);
-
+        userService.save(user);
         var jwtToken = generateToken(request.getUsername(), request.getPassword());
         var refreshToken = generateRefreshToken(request.getUsername(), request.getPassword());
         saveUserToken(user, refreshToken);
@@ -91,6 +93,7 @@ public class AuthServiceImpl implements AuthService {
     public void logout(String token) {
         String refreshToken = extractTokenFromHeader(token);
         RefreshToken existing = tokenService.findByToken(refreshToken);
+
         User user = userService.getUser(existing.getUser().getUsername());
         tokenService.deleteAllByUserId(user.getId());
     }
@@ -100,7 +103,7 @@ public class AuthServiceImpl implements AuthService {
         String refreshToken = extractTokenFromHeader(token);
         RefreshToken existing = tokenService.findByToken(refreshToken);
         if (!tokenService.verifyExpiration(existing)) {
-
+            revokeUsersTokens(existing.getUser());
             var newToken = generateToken(existing.getUser().getUsername(),
                     existing.getUser().getPassword());
             return TokenRefreshResponse.builder()
@@ -111,7 +114,7 @@ public class AuthServiceImpl implements AuthService {
         return null;
     }
 
-    public void revokeUsersTokens(User user) {
+    private void revokeUsersTokens(User user) {
         var validUserTokens = tokenService.findAllValid(user.getId());
         if (validUserTokens.isEmpty())
             return;
@@ -134,7 +137,6 @@ public class AuthServiceImpl implements AuthService {
     }
 
 
-
     private String generateToken(
             String username, String password
     ) {
@@ -151,7 +153,7 @@ public class AuthServiceImpl implements AuthService {
 
         Authentication authentication = authenticationManager
                 .authenticate(new UsernamePasswordAuthenticationToken(username, password));
-        return tokenProvider.generate(authentication);
+        return tokenProvider.generateRefreshToken(authentication);
     }
 
     private String extractTokenFromHeader(String authorizationHeader) {

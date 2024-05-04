@@ -1,5 +1,6 @@
 package com.example.patronus.payload.request;
 
+import com.example.patronus.annotation.Password;
 import com.example.patronus.models.jpa.Role;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -21,6 +22,7 @@ public class SignUpRequest {
 
     @NotBlank
     @Size(min = 6, max = 40)
+    @Password
     private String password;
 
     @NotBlank
@@ -31,7 +33,5 @@ public class SignUpRequest {
     @Size(max = 50)
     @Email
     private String email;
-
-    private Role role;
 
 }

@@ -2,7 +2,7 @@ package com.example.patronus.service.impl;
 
 
 
-import com.example.patronus.exception.UserNotFoundException;
+import com.example.patronus.exception.user.UserNotFoundException;
 import com.example.patronus.models.jpa.User;
 import com.example.patronus.repository.UserRepository;
 import com.example.patronus.service.UserService;
@@ -15,6 +15,12 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
+
+    @Override
+    public User save(User user) {
+        return userRepository.save(user);
+    }
+
     @Override
     public User getUser(String username) {
         return userRepository.findByUsername(username)

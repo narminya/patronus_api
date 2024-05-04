@@ -1,6 +1,5 @@
 package com.example.patronus.service.impl;
 
-import com.example.patronus.exception.UserNotFoundException;
 import com.example.patronus.exception.token.TokenNotFoundException;
 import com.example.patronus.exception.token.TokenRefreshException;
 import com.example.patronus.models.jpa.RefreshToken;
@@ -14,7 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -60,15 +58,12 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
         return tokenRepository.findByToken(token)
                 .orElseThrow(TokenNotFoundException::new);
     }
-
-
     @Override
     @Transactional
     public int deleteByUserId(UUID userId) {
         User user = userService.getUserById(userId);
         return tokenRepository.deleteByUser(user);
     }
-
     @Override
     public int deleteAllByUserId(UUID userId) {
         User user = userService.getUserById(userId);

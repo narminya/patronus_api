@@ -50,7 +50,7 @@ public class DatabaseInitializer implements CommandLineRunner {
             User.builder()
                     .username("narminya")
                     .password("1234")
-                    .email("user@mycompany.com")
+                    .email("narminya@code.edu.az")
                     .roles(new HashSet<>())
                     .build()
     );

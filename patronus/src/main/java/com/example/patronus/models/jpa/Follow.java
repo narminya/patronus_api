@@ -1,20 +1,23 @@
 package com.example.patronus.models.jpa;
 
+import com.example.patronus.models.base.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Data
-@Builder
+@Getter
+@Setter
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "follows")
 @ToString(exclude = {"follower","following"})
-public class Follow {
+public class Follow extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id")
@@ -28,11 +31,6 @@ public class Follow {
     @JoinColumn(name = "following_id")
     private User following;
 
-    @CreatedDate
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
 
 
 }

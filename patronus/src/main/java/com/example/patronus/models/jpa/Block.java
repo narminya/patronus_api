@@ -1,19 +1,22 @@
 package com.example.patronus.models.jpa;
 
+import com.example.patronus.models.base.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Data
-@Builder
+@Getter
+@Setter
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString(exclude = {"blocker","blocked"})
-public class Block {
+public class Block extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id")
@@ -26,13 +29,5 @@ public class Block {
     @ManyToOne
     @JoinColumn(name = "blocked_user_id")
     private User blocked;
-
-
-    @CreatedDate
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
-
 
 }

@@ -1,6 +1,6 @@
 package com.example.patronus.security.oauth;
 
-import com.example.patronus.enums.ERole;
+import com.example.patronus.enums.UserRole;
 import com.example.patronus.models.jpa.Role;
 import com.example.patronus.models.jpa.User;
 import com.example.patronus.repository.RoleRepository;
@@ -57,7 +57,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             user.setProvider(customUserDetails.getProvider());
 
             Role optionalRole = roleRepository
-                    .findByName(ERole.valueOf("USER")).orElseThrow();
+                    .findByName(UserRole.valueOf("USER")).orElseThrow();
             user.getRoles().add(optionalRole);
 
         } else {

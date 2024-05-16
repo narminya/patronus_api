@@ -1,20 +1,23 @@
 package com.example.patronus.models.jpa;
 
 
+import com.example.patronus.models.base.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 @Entity
-@Data
-@Builder
+@Getter
+@Setter
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "likes")
 @ToString(exclude = {"user"})
-public class Like {
+public class Like extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
@@ -27,7 +30,4 @@ public class Like {
     @JoinColumn(name = "stream_id")
     private Stream stream;
 
-    @CreatedDate
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
 }

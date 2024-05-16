@@ -1,23 +1,23 @@
 package com.example.patronus.models.jpa;
 
 
+import com.example.patronus.models.base.BaseEntity;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Data
-@Builder
+@Getter
+@Setter
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "email_confirm_token")
-public class EmailConfirmationToken {
+public class EmailConfirmationToken extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -25,10 +25,6 @@ public class EmailConfirmationToken {
 
     @Column(nullable = false)
     private String token;
-
-    @Column(nullable = false)
-    @CreatedDate
-    private LocalDateTime createdAt = LocalDateTime.now();
 
     @Column(nullable = false)
     private LocalDateTime expiresAt;

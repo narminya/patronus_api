@@ -2,6 +2,7 @@ package com.example.patronus.service.impl;
 
 import com.example.patronus.exception.stream.StreamNotFoundException;
 import com.example.patronus.repository.StreamRepository;
+import com.example.patronus.service.StreamCacheService;
 import com.example.patronus.service.StreamService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -16,7 +17,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class StreamServiceImpl implements StreamService {
     private final StreamRepository repository;
-
+    private final StreamCacheService cacheService;
 
     @Override
     public Stream save(Stream liveStream) {
@@ -54,7 +55,7 @@ public class StreamServiceImpl implements StreamService {
         var live = repository.findLiveByUserId(userId)
                 .orElseThrow(() -> new StreamNotFoundException(userId));
         live.setLive(false);
-//        cacheService.removeStream(streamId);
+        cacheService.removeStream(live.getId());
         return repository.save(live);
     }
 

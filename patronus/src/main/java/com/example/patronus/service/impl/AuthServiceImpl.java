@@ -1,7 +1,8 @@
 package com.example.patronus.service.impl;
 
-import com.example.patronus.enums.ERole;
+import com.example.patronus.enums.UserRole;
 import com.example.patronus.exception.user.DuplicatedUserInfoException;
+import com.example.patronus.mapper.user.UserRegisterRequestToUserEntityMapper;
 import com.example.patronus.models.jpa.EmailConfirmationToken;
 import com.example.patronus.models.jpa.RefreshToken;
 import com.example.patronus.models.jpa.Role;
@@ -11,6 +12,7 @@ import com.example.patronus.payload.request.SignUpRequest;
 import com.example.patronus.payload.response.AuthResponse;
 import com.example.patronus.payload.response.TokenRefreshResponse;
 import com.example.patronus.repository.RoleRepository;
+import com.example.patronus.repository.UserRepository;
 import com.example.patronus.security.TokenProvider;
 import com.example.patronus.service.*;
 import jakarta.transaction.Transactional;
@@ -25,7 +27,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.HashSet;
 import java.util.UUID;
 
 import static com.example.patronus.utils.EmailBuilder.buildEmail;
@@ -40,55 +41,39 @@ public class AuthServiceImpl implements AuthService {
 
     private final TokenProvider tokenProvider;
     private final PasswordEncoder passwordEncoder;
-    private final UserService userService;
+    private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final AuthenticationManager authenticationManager;
     private final RefreshTokenService tokenService;
     private final EmailConfirmationService emailConfirmationService;
     private final EmailService emailService;
+    private final UserRegisterRequestToUserEntityMapper userRegisterRequestToUserEntityMapper = UserRegisterRequestToUserEntityMapper.initialize();
     @Override
     public AuthResponse register(SignUpRequest request) {
 
-        if (userService.hasUserWithUsername(request.getUsername())) {
+        if (userRepository.existsByUsername(request.getUsername())) {
             throw new DuplicatedUserInfoException(String.format("Username %s already been used", request.getUsername()));
         }
-        if (userService.hasUserWithEmail(request.getEmail())) {
+        if (userRepository.existsByEmail(request.getEmail())) {
             throw new DuplicatedUserInfoException(String.format("Email %s already been used", request.getEmail()));
         }
         Role optionalRole = roleRepository
-                .findByName(ERole.valueOf("USER")).orElseThrow();
-
-        User user = User.builder()
-                .email(request.getEmail())
-                .bio(request.getFullName())
-                .username(request.getUsername())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .roles(new HashSet<>())
-                .build();
+                .findByName(UserRole.valueOf("USER"))
+                .orElseThrow();
+        User user = userRegisterRequestToUserEntityMapper.mapForSaving(request);
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.getRoles().add(optionalRole);
-
-        userService.save(user);
-        confirmEmailSigningUp(request, user);
-
-        var jwtToken = generateToken(request.getUsername(), request.getPassword());
-        var refreshToken = generateRefreshToken(request.getUsername(), request.getPassword());
-        saveUserToken(user, refreshToken);
-
-        return AuthResponse.builder()
-                .accessToken(jwtToken)
-                .refreshToken(refreshToken)
-                .build();
+        userRepository.save(user);
+        confirmEmailSigningUp(request,user);
+        return generateUserTokens(user);
     }
 
     @Override
     public AuthResponse authenticate(LoginRequest request) {
-        var jwtToken = generateToken(request.getEmail(), request.getPassword());
-        var refreshToken = generateRefreshToken(request.getEmail(), request.getPassword());
-
-        AuthResponse response = new AuthResponse();
-        response.setAccessToken(jwtToken);
-        response.setRefreshToken(refreshToken);
-
+        Authentication authentication = authenticationManager
+                .authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
+        var jwtToken = tokenProvider.generate(authentication);
+        var refreshToken = tokenProvider.generateRefreshToken(authentication);
 
         return AuthResponse.builder()
                 .email(request.getEmail())
@@ -102,7 +87,8 @@ public class AuthServiceImpl implements AuthService {
         String refreshToken = extractTokenFromHeader(token);
         RefreshToken existing = tokenService.findByToken(refreshToken);
 
-        User user = userService.getUser(existing.getUser().getUsername());
+        User user = userRepository.findByUsername(existing.getUser().getUsername())
+                .orElseThrow();
         tokenService.deleteAllByUserId(user.getId());
     }
 
@@ -112,8 +98,11 @@ public class AuthServiceImpl implements AuthService {
         RefreshToken existing = tokenService.findByToken(refreshToken);
         if (!tokenService.verifyExpiration(existing)) {
             revokeUsersTokens(existing.getUser());
-            var newToken = generateToken(existing.getUser().getUsername(),
-                    existing.getUser().getPassword());
+            Authentication authentication = authenticationManager
+                    .authenticate(new UsernamePasswordAuthenticationToken(existing.getUser().getUsername(),
+                            existing.getUser().getPassword()));
+
+            var newToken = tokenProvider.generate(authentication);
             return TokenRefreshResponse.builder()
                     .accessToken(newToken)
                     .refreshToken(existing.getToken())
@@ -137,7 +126,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
         emailConfirmationService.setConfirmedAt(emailToken);
-        userService.confirmUser(
+        userRepository.confirmUserByEmail(
                 emailConfirmationToken.getUser().getEmail());
         return "Your email: " + emailConfirmationToken.getUser().getEmail() + " is successfully confirmed. Thank you!";
     }
@@ -146,11 +135,11 @@ public class AuthServiceImpl implements AuthService {
 
         String emailToken = UUID.randomUUID().toString();
         EmailConfirmationToken emailConfirmationToken = EmailConfirmationToken.builder()
-                .token(emailToken).createdAt( LocalDateTime.now()).expiresAt(LocalDateTime.now().plusMinutes(15))
+                .token(emailToken).createdAt( LocalDateTime.now())
+                .expiresAt(LocalDateTime.now().plusMinutes(15))
                 .user(user).build();
 
         emailConfirmationService.saveEmailConfirmationToken(emailConfirmationToken);
-
         sendConfirmationEmail(signUpRequest.getEmail(), emailToken);
 
     }
@@ -178,29 +167,9 @@ public class AuthServiceImpl implements AuthService {
                 .token(jwtToken)
                 .expired(false)
                 .revoked(false)
-                .expiryDate(Instant.now().plusSeconds(jwtRefreshExpirationMs))
+                .expiryDate(Instant.now().plusSeconds(120000))
                 .build();
         tokenService.save(token);
-    }
-
-
-    private String generateToken(
-            String username, String password
-    ) {
-
-        Authentication authentication = authenticationManager
-                .authenticate(new UsernamePasswordAuthenticationToken(username, password));
-        return tokenProvider.generate(authentication);
-    }
-
-
-    private String generateRefreshToken(
-            String username, String password
-    ) {
-
-        Authentication authentication = authenticationManager
-                .authenticate(new UsernamePasswordAuthenticationToken(username, password));
-        return tokenProvider.generateRefreshToken(authentication);
     }
 
     private String extractTokenFromHeader(String authorizationHeader) {
@@ -211,4 +180,20 @@ public class AuthServiceImpl implements AuthService {
         return null;
     }
 
+
+    private AuthResponse generateUserTokens(User user){
+        Authentication authentication = authenticationManager
+                .authenticate(new UsernamePasswordAuthenticationToken(
+                        user.getUsername(),
+                        user.getPassword()));
+
+        var jwtToken = tokenProvider.generate(authentication);
+        var refreshToken = tokenProvider.generateRefreshToken(authentication);
+        saveUserToken(user, refreshToken);
+
+        return AuthResponse.builder()
+                .accessToken(jwtToken)
+                .refreshToken(refreshToken)
+                .build();
+    }
 }

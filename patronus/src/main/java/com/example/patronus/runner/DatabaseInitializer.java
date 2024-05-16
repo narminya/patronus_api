@@ -1,6 +1,6 @@
 package com.example.patronus.runner;
 
-import com.example.patronus.enums.ERole;
+import com.example.patronus.enums.UserRole;
 import com.example.patronus.models.jpa.Role;
 import com.example.patronus.models.jpa.User;
 import com.example.patronus.repository.RoleRepository;
@@ -12,7 +12,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 
@@ -31,7 +30,7 @@ public class DatabaseInitializer implements CommandLineRunner {
         }
 
         Role optionalRole = roleRepository
-                .findByName(ERole.valueOf("USER")).orElseThrow();
+                .findByName(UserRole.valueOf("USER")).orElseThrow();
 
         USERS.forEach(c->c.getRoles().add(optionalRole));
 
@@ -42,8 +41,8 @@ public class DatabaseInitializer implements CommandLineRunner {
     }
 
     private static final List<Role> ROLES = Arrays.asList(
-            Role.builder().name(ERole.valueOf("USER")).build(),
-            Role.builder().name(ERole.valueOf("ADMIN")).build()
+            Role.builder().name(UserRole.valueOf("USER")).build(),
+            Role.builder().name(UserRole.valueOf("ADMIN")).build()
     );
 
     private static final List<User> USERS = Arrays.asList(

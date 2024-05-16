@@ -1,12 +1,12 @@
 package com.example.patronus.models.jpa;
 
+import com.example.patronus.enums.UserStatus;
+import com.example.patronus.models.base.BaseEntity;
 import com.example.patronus.security.oauth.OAuth2Provider;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDateTime;
@@ -16,8 +16,9 @@ import java.util.UUID;
 
 
 @Entity
-@Data
-@Builder
+@Getter
+@Setter
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "users", uniqueConstraints = {
@@ -25,9 +26,10 @@ import java.util.UUID;
         @UniqueConstraint(columnNames = "email")
 })
 
-public class User {
+public class User extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "id")
     private UUID id;
     private String username;
     private String email;
@@ -35,27 +37,24 @@ public class User {
     private String imageUrl;
     private String bio;
     private String name;
-    @Column(name = "email_confirmed")
-    private boolean emailConfirmed=false;
+    private String providerId;
+
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    private OAuth2Provider provider =  OAuth2Provider.LOCAL;
+
+    @Builder.Default
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(  name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles = new HashSet<>();
 
-
+    @Builder.Default
     @Enumerated(EnumType.STRING)
-    private OAuth2Provider provider;
+    private UserStatus userStatus = UserStatus.ACTIVE;
 
-    private String providerId;
-
-
-
-    @CreatedDate
-    @Column(name = "created_at")
-    private LocalDateTime createdAt = LocalDateTime.now();
-
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
-
+    @Builder.Default
+    @Column(name = "email_confirmed")
+    private boolean emailConfirmed=false;
 }

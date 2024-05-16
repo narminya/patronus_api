@@ -1,6 +1,6 @@
 package com.example.patronus.enums;
 
-public enum ERole {
+public enum UserRole {
   USER,
   MODERATOR,
   ADMIN

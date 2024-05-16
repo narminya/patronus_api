@@ -30,8 +30,8 @@ public class SignUpRequest {
     private String username;
 
     @NotBlank
-    @Size(max = 50)
-    @Email
+    @Email(message = "Please enter valid e-mail address")
+    @Size(min = 7, message = "Minimum e-mail length is 7 characters.")
     private String email;
 
 }

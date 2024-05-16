@@ -1,23 +1,25 @@
 package com.example.patronus.models.jpa;
 
+import com.example.patronus.models.base.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Data
-@Builder
+@Getter
+@Setter
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "streams")
 @ToString(exclude = {"user"})
-public class Stream {
+public class Stream extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-
     @Column(name = "id")
     private UUID id;
     private String caption;
@@ -30,16 +32,8 @@ public class Stream {
     @JoinColumn(name = "user_id")
     private User user;
 
-
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
-
-
     @ManyToOne
     @JoinColumn(name = "category_id")
     private Category category;
-
-    @CreatedDate
-    private LocalDateTime createdAt = LocalDateTime.now();
 
 }

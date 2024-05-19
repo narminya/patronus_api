@@ -2,8 +2,8 @@ package com.example.patronus.service.impl;
 
 import com.example.patronus.exception.token.TokenNotFoundException;
 import com.example.patronus.exception.token.TokenRefreshException;
-import com.example.patronus.models.jpa.RefreshToken;
-import com.example.patronus.models.jpa.User;
+import com.example.patronus.models.entity.RefreshToken;
+import com.example.patronus.models.entity.User;
 import com.example.patronus.repository.TokenRepository;
 import com.example.patronus.service.RefreshTokenService;
 import com.example.patronus.service.UserService;

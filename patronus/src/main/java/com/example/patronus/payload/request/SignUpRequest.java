@@ -1,7 +1,6 @@
 package com.example.patronus.payload.request;
 
 import com.example.patronus.annotation.Password;
-import com.example.patronus.models.jpa.Role;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

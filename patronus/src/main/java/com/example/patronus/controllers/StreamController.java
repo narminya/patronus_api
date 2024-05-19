@@ -1,12 +1,19 @@
 package com.example.patronus.controllers;
 
-import com.example.patronus.models.jpa.Stream;
+import com.example.patronus.mapper.stream.StreamResponse;
+import com.example.patronus.models.entity.Stream;
+import com.example.patronus.models.redis.StreamHash;
 import com.example.patronus.payload.request.StreamCreateRequest;
+import com.example.patronus.payload.request.StreamPatchRequest;
+import com.example.patronus.payload.request.StreamPutRequest;
+import com.example.patronus.payload.response.LiveStreamResponse;
 import com.example.patronus.security.CustomUserDetails;
 //import com.example.patronus.service.StreamCacheService;
+import com.example.patronus.service.StreamCacheService;
 import com.example.patronus.service.StreamService;
 import com.example.patronus.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
@@ -17,7 +24,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("api/v1/streams")
@@ -25,31 +34,31 @@ import java.util.UUID;
 public class StreamController {
 
     private final StreamService service;
-//    private final StreamCacheService cacheService;
+    private final StreamCacheService cacheService;
     private final UserService userService;
-//    private final StreamMapper streamMapper;
+    private final StreamMapper streamMapper;
     @Operation(summary = "Get all streams")
     @GetMapping("/all/pageable")
     public Page<Stream> getStreams(@ParameterObject Pageable pageable) {
         return service.listAllStreamsByPage(pageable);
     }
-//    @Operation(summary = "Get all streams")
-//    @GetMapping("/all/live")
-//    public List<LiveStreamResponse> getLiveStreams() {
-//        List<StreamHash> liveStreamPage = cacheService.getAllLiveStreams();
-//        return liveStreamPage.stream()
-//                .map(streamMapper::mapToLiveStreamResponse)
-//                .collect(Collectors.toList());
-//    }
+    @Operation(summary = "Get all streams")
+    @GetMapping("/all/live")
+    public List<LiveStreamResponse> getLiveStreams() {
+        List<StreamHash> liveStreamPage = cacheService.getAllLiveStreams();
+        return liveStreamPage.stream()
+                .map(streamMapper::mapToLiveStreamResponse)
+                .collect(Collectors.toList());
+    }
     @Operation(summary = "Get all streams of currently authenticated user")
     @GetMapping("/all/user")
     public ResponseEntity<Page<Stream>> getAllUsersStreams(@AuthenticationPrincipal CustomUserDetails currentUser,
                                                            @ParameterObject Pageable pageable) {
         Page<Stream> streamPage = service.getStreams(currentUser.getId(), pageable);
-//        List<StreamResponse> streamResponses = streamPage.getContent()
-//                .stream()
-//                .map(streamMapper::mapToStreamResponse)
-//                .collect(Collectors.toList());
+        List<StreamResponse> streamResponses = streamPage.getContent()
+                .stream()
+                .map(streamMapper::mapToStreamResponse)
+                .collect(Collectors.toList());
         return ResponseEntity.ok(streamPage);
     }
 
@@ -60,20 +69,20 @@ public class StreamController {
         return ResponseEntity.ok(stream);
     }
 
-//    @Operation(summary = "Get live stream of currently authenticated user")
-//    @GetMapping("/live")
-//    public ResponseEntity<LiveStreamResponse> getLive(@AuthenticationPrincipal CustomUserDetails currentUser) {
-//        StreamHash stream = cacheService.getLiveByUserId(currentUser.getId());
-//        LiveStreamResponse streamResponse = streamMapper.mapToLiveStreamResponse(stream);
-//        return ResponseEntity.ok(streamResponse);
-//    }
-//    @Operation(summary = "Get live stream of any user")
-//    @GetMapping("/{userId}/live")
-//    public ResponseEntity<LiveStreamResponse> getUsersLive(@PathVariable UUID userId) {
-//        StreamHash stream = cacheService.getLiveByUserId(userId);
-//        LiveStreamResponse streamResponse = streamMapper.mapToLiveStreamResponse(stream);
-//        return ResponseEntity.ok(streamResponse);
-//    }
+    @Operation(summary = "Get live stream of currently authenticated user")
+    @GetMapping("/live")
+    public ResponseEntity<LiveStreamResponse> getLive(@AuthenticationPrincipal CustomUserDetails currentUser) {
+        StreamHash stream = cacheService.getLiveByUserId(currentUser.getId());
+        LiveStreamResponse streamResponse = streamMapper.mapToLiveStreamResponse(stream);
+        return ResponseEntity.ok(streamResponse);
+    }
+    @Operation(summary = "Get live stream of any user")
+    @GetMapping("/{userId}/live")
+    public ResponseEntity<LiveStreamResponse> getUsersLive(@PathVariable UUID userId) {
+        StreamHash stream = cacheService.getLiveByUserId(userId);
+        LiveStreamResponse streamResponse = streamMapper.mapToLiveStreamResponse(stream);
+        return ResponseEntity.ok(streamResponse);
+    }
 
     @Operation(summary = "Gets all streams of non blocked by current user")
     @GetMapping("/filter")
@@ -96,7 +105,7 @@ public class StreamController {
                 .live(true)
                 .user(user)
                 .build());
-//        cacheService.save(savedStream);
+        cacheService.save(savedStream);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedStream);
     }
 
@@ -108,24 +117,24 @@ public class StreamController {
         return ResponseEntity.status(HttpStatus.CREATED).body(null);
     }
 
-//    @Operation(summary = "Updates streams ingress info")
-//    @PutMapping("/ingress")
-//    public ResponseEntity<LiveStreamResponse> updateIngress(@AuthenticationPrincipal CustomUserDetails currentUser,
-//                                                            @Valid @RequestBody StreamPutRequest request) {
-//
-//        StreamHash stream = cacheService.updateIngressInfo(currentUser.getId(), request);
-//        LiveStreamResponse streamResponse = streamMapper.mapToLiveStreamResponse(stream);
-//        return ResponseEntity.ok(streamResponse);
-//    }
+    @Operation(summary = "Updates streams ingress info")
+    @PutMapping("/ingress")
+    public ResponseEntity<LiveStreamResponse> updateIngress(@AuthenticationPrincipal CustomUserDetails currentUser,
+                                                            @Valid @RequestBody StreamPutRequest request) {
 
-//    @Operation(summary = "Updates chat details of stream")
-//    @PutMapping("/chat")
-//    public ResponseEntity<LiveStreamResponse> updateStream(@AuthenticationPrincipal CustomUserDetails currentUser,
-//                                                           @Valid @RequestBody StreamPatchRequest request) {
-//        var stream = cacheService.updateStreamInfo(currentUser.getId(), request);
-//        LiveStreamResponse streamResponse = streamMapper.mapToLiveStreamResponse(stream);
-//        return ResponseEntity.ok(streamResponse);
-//    }
+        StreamHash stream = cacheService.updateIngressInfo(currentUser.getId(), request);
+        LiveStreamResponse streamResponse = streamMapper.mapToLiveStreamResponse(stream);
+        return ResponseEntity.ok(streamResponse);
+    }
+
+    @Operation(summary = "Updates chat details of stream")
+    @PutMapping("/chat")
+    public ResponseEntity<LiveStreamResponse> updateStream(@AuthenticationPrincipal CustomUserDetails currentUser,
+                                                           @Valid @RequestBody StreamPatchRequest request) {
+        var stream = cacheService.updateStreamInfo(currentUser.getId(), request);
+        LiveStreamResponse streamResponse = streamMapper.mapToLiveStreamResponse(stream);
+        return ResponseEntity.ok(streamResponse);
+    }
 
 
     @Operation(summary = "User archives stream")

@@ -1,7 +1,7 @@
 package com.example.patronus.service;
 
 
-import com.example.patronus.models.jpa.Stream;
+import com.example.patronus.models.entity.Stream;
 import com.example.patronus.models.redis.StreamHash;
 import com.example.patronus.payload.request.StreamPatchRequest;
 import com.example.patronus.payload.request.StreamPutRequest;

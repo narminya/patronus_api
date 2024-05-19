@@ -1,7 +1,7 @@
 package com.example.patronus.service;
 
 
-import com.example.patronus.models.jpa.EmailConfirmationToken;
+import com.example.patronus.models.entity.EmailConfirmationToken;
 
 public interface EmailConfirmationService {
      void saveEmailConfirmationToken(EmailConfirmationToken token);

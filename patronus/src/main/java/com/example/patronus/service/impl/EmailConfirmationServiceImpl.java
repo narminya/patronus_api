@@ -1,6 +1,6 @@
 package com.example.patronus.service.impl;
 
-import com.example.patronus.models.jpa.EmailConfirmationToken;
+import com.example.patronus.models.entity.EmailConfirmationToken;
 import com.example.patronus.repository.EmailConfirmationRepository;
 import com.example.patronus.service.EmailConfirmationService;
 import lombok.RequiredArgsConstructor;

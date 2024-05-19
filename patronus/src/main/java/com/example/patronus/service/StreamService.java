@@ -1,9 +1,8 @@
 package com.example.patronus.service;
 
-import com.example.patronus.models.jpa.Stream;
+import com.example.patronus.models.entity.Stream;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.UUID;
 public interface StreamService {

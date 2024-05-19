@@ -1,12 +1,10 @@
-package com.example.patronus.models.jpa;
+package com.example.patronus.models.entity;
 
 import com.example.patronus.models.base.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import org.springframework.data.annotation.CreatedDate;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity

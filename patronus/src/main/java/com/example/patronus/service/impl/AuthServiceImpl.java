@@ -3,10 +3,10 @@ package com.example.patronus.service.impl;
 import com.example.patronus.enums.UserRole;
 import com.example.patronus.exception.user.DuplicatedUserInfoException;
 import com.example.patronus.mapper.user.UserRegisterRequestToUserEntityMapper;
-import com.example.patronus.models.jpa.EmailConfirmationToken;
-import com.example.patronus.models.jpa.RefreshToken;
-import com.example.patronus.models.jpa.Role;
-import com.example.patronus.models.jpa.User;
+import com.example.patronus.models.entity.EmailConfirmationToken;
+import com.example.patronus.models.entity.RefreshToken;
+import com.example.patronus.models.entity.Role;
+import com.example.patronus.models.entity.User;
 import com.example.patronus.payload.request.LoginRequest;
 import com.example.patronus.payload.request.SignUpRequest;
 import com.example.patronus.payload.response.AuthResponse;
@@ -36,8 +36,7 @@ import static com.example.patronus.utils.EmailBuilder.buildEmail;
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
-    @Value("${app.jwtRefreshExpirationMs}")
-    private Long jwtRefreshExpirationMs;
+
 
     private final TokenProvider tokenProvider;
     private final PasswordEncoder passwordEncoder;
@@ -60,9 +59,11 @@ public class AuthServiceImpl implements AuthService {
         Role optionalRole = roleRepository
                 .findByName(UserRole.valueOf("USER"))
                 .orElseThrow();
+
         User user = userRegisterRequestToUserEntityMapper.mapForSaving(request);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.getRoles().add(optionalRole);
+
         userRepository.save(user);
         confirmEmailSigningUp(request,user);
         return generateUserTokens(user);

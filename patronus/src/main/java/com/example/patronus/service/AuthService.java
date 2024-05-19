@@ -1,6 +1,5 @@
 package com.example.patronus.service;
 
-import com.example.patronus.models.jpa.User;
 import com.example.patronus.payload.request.LoginRequest;
 import com.example.patronus.payload.request.SignUpRequest;
 import com.example.patronus.payload.response.AuthResponse;

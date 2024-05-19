@@ -1,6 +1,6 @@
 package com.example.patronus.annotation;
 
-import com.example.patronus.models.jpa.User;
+import com.example.patronus.models.entity.User;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

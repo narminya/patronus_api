@@ -1,6 +1,6 @@
 package com.example.patronus.security;
 
-import com.example.patronus.models.jpa.User;
+import com.example.patronus.models.entity.User;
 import com.example.patronus.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

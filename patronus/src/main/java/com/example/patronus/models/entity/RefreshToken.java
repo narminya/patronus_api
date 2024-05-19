@@ -1,4 +1,4 @@
-package com.example.patronus.models.jpa;
+package com.example.patronus.models.entity;
 
 
 import com.example.patronus.models.base.BaseEntity;
@@ -7,7 +7,6 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 import java.time.Instant;
-import java.time.LocalDate;
 import java.util.UUID;
 
 @Entity

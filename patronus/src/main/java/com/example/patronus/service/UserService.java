@@ -1,6 +1,6 @@
 package com.example.patronus.service;
 
-import com.example.patronus.models.jpa.User;
+import com.example.patronus.models.entity.User;
 
 import java.util.UUID;
 

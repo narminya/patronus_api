@@ -1,7 +1,7 @@
 package com.example.patronus.mapper.user;
 
 import com.example.patronus.mapper.BaseMapper;
-import com.example.patronus.models.jpa.User;
+import com.example.patronus.models.entity.User;
 import com.example.patronus.payload.request.SignUpRequest;
 import org.mapstruct.Mapper;
 import org.mapstruct.Named;

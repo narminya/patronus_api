@@ -8,7 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import com.example.patronus.models.jpa.Stream;
+import com.example.patronus.models.entity.Stream;
 
 import java.util.UUID;
 

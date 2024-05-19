@@ -32,6 +32,7 @@ public class AuthController {
     ) {
         return ResponseEntity.ok(authService.register(request));
     }
+
     @PostMapping("/logout")
     @Operation(summary = "Logout user", description = "Logs out a user by invalidating the authentication token.",
             responses = {

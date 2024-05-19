@@ -1,4 +1,4 @@
-package com.example.patronus.models.jpa;
+package com.example.patronus.models.entity;
 
 
 import com.example.patronus.enums.UserRole;

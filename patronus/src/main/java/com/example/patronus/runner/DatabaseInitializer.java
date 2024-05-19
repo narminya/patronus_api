@@ -1,8 +1,8 @@
 package com.example.patronus.runner;
 
 import com.example.patronus.enums.UserRole;
-import com.example.patronus.models.jpa.Role;
-import com.example.patronus.models.jpa.User;
+import com.example.patronus.models.entity.Role;
+import com.example.patronus.models.entity.User;
 import com.example.patronus.repository.RoleRepository;
 import com.example.patronus.repository.UserRepository;
 import lombok.RequiredArgsConstructor;

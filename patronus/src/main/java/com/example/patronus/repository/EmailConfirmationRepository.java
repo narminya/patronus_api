@@ -1,7 +1,7 @@
 package com.example.patronus.repository;
 
 
-import com.example.patronus.models.jpa.EmailConfirmationToken;
+import com.example.patronus.models.entity.EmailConfirmationToken;
 import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;

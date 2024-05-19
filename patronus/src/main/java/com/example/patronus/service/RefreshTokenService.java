@@ -1,9 +1,8 @@
 package com.example.patronus.service;
 
-import com.example.patronus.models.jpa.RefreshToken;
+import com.example.patronus.models.entity.RefreshToken;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 public interface RefreshTokenService {

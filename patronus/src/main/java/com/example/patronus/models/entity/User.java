@@ -1,15 +1,12 @@
-package com.example.patronus.models.jpa;
+package com.example.patronus.models.entity;
 
 import com.example.patronus.enums.UserStatus;
 import com.example.patronus.models.base.BaseEntity;
 import com.example.patronus.security.oauth.OAuth2Provider;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import org.springframework.data.annotation.CreatedDate;
 
-import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;

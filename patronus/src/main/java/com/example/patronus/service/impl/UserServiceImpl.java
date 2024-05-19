@@ -3,7 +3,7 @@ package com.example.patronus.service.impl;
 
 
 import com.example.patronus.exception.user.UserNotFoundException;
-import com.example.patronus.models.jpa.User;
+import com.example.patronus.models.entity.User;
 import com.example.patronus.repository.UserRepository;
 import com.example.patronus.service.UserService;
 import lombok.RequiredArgsConstructor;

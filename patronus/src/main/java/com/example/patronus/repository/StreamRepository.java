@@ -1,6 +1,6 @@
 package com.example.patronus.repository;
 
-import com.example.patronus.models.jpa.Stream;
+import com.example.patronus.models.entity.Stream;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
